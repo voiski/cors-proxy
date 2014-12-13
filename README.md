@@ -74,4 +74,5 @@ Just use as follows in links/requests:
 Sample:
 
 > http://localhost/appExemplo/cont1/#/sample/doSomething
+>
 > http://localhost/appExemplo/cont2/page.do?dispatchMethod=ACTION_SOMETHING
