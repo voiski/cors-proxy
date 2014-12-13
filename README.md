@@ -6,8 +6,24 @@ Instalation
 --------------------
 The installation consist in export the authentication key target address certificate, configure your access data in the servlet configuration property, add the jar to the classpath and configure it in the application web.xml.
 
+####Classpath
+Simply put the jar in classpath of your web application or use maven:
+
+```xml
+	<dependency>
+		<groupId>org.webedded.cors</groupId>
+		<artifactId>cors-proxy</artifactId>
+		<version>1.0</version>
+	</dependency>
+```
+
+
+> Not yet in central maven, see tags for release.
+
 ####Generate KeyStore/TrustStore
-TODO Document how
+Server certificates signed with well known public Certificate Authority dont need this config.
+
+`TODO Document how`
 
 ####Config Properties
 Create a file with key=value, the path to this file will be used in Web.xml.
@@ -22,12 +38,14 @@ Create a file with key=value, the path to this file will be used in Web.xml.
 - **server.<mapped_origin_context>** original url to be decorated, you can configure multiple services like:
 
 > server.cont1=https://sample.com/programX
+
 > server.cont2=https://sample2.org/programY
 
 - **resource.from.<some_index>** if you desire to override one resource, you can refer to any other but this will reuse the parameter `content-type` of request header in the response header. This configuration need pair config by setting the **resource.to**. In this first you need to declare the url with the `/<mapped_origin_context>/<second_part_original_url>`.
 - **resource.to.<some_index>**  In this second config, you refer to new service or file. File needs to specify protocol `file://`.
 
 > resource.from.cont1-index=/cont1/index.html
+
 > resource.to.cont1-index=file:///path/to/file.html
 
 ####Config Web.xml
