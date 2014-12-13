@@ -49,6 +49,7 @@ public class CorsProxyServlet extends HttpServlet {
 
 	// Init params from web.xml
 	public static final String INIT_CONFIG_PATH = "org.webedded.cors.conf_path";
+	public static final String INIT_HANDLER_CLASS = "org.webedded.cors.handler_class";
 
 	// Params from resource config
 	private static final String INIT_CONFIG_KEYSTORETYPE = "javax.net.ssl.keyStoreType";
@@ -70,6 +71,8 @@ public class CorsProxyServlet extends HttpServlet {
 
 	private static final Map<String, String> contextServicesMap = new HashMap<String, String>();
 	private static final Map<String, String> contextResoucesMap = new HashMap<String, String>();
+	
+	private static CorsProxyHandler handler;
 
 	@Override
 	public void init(final ServletConfig config) throws ServletException {
@@ -90,6 +93,8 @@ public class CorsProxyServlet extends HttpServlet {
 							"Error loading CORS-Proxy configuration: "
 									+ e.getMessage());
 		}
+		
+		initHandler(config);
 
 		// Configure access to SSL
 		setSystemPropertieIfExist(externalConfiguration, INIT_CONFIG_KEYSTORETYPE);
@@ -125,6 +130,57 @@ public class CorsProxyServlet extends HttpServlet {
 				contextResoucesMap.put(urlFrom, urlTo);
 			}
 		}
+	}
+
+	/**
+	 * Configure handler, if not exist custom class use a single implementation.
+	 */
+	private void initHandler(final ServletConfig config)
+			throws ServletException {
+		if(config.getInitParameter(INIT_HANDLER_CLASS)!=null){
+			try {
+				@SuppressWarnings("rawtypes")
+				final Class clazz = this.getClass().getClassLoader().loadClass(config.getInitParameter(INIT_HANDLER_CLASS));
+				handler = (CorsProxyHandler) clazz.newInstance();
+			} catch (final ClassNotFoundException e) {
+				Logger.getLogger(CorsProxyServlet.class.getName()).log(
+						Level.SEVERE, null, e);
+				throw new ServletException("Error in configuration of handler for CORS Proxy!",e);
+			} catch (InstantiationException e) {
+				Logger.getLogger(CorsProxyServlet.class.getName()).log(
+						Level.SEVERE, null, e);
+				throw new ServletException("Error in configuration of handler for CORS Proxy!",e);
+			} catch (IllegalAccessException e) {
+				Logger.getLogger(CorsProxyServlet.class.getName()).log(
+						Level.SEVERE, null, e);
+				throw new ServletException("Error in configuration of handler for CORS Proxy!",e);
+			}
+		}else{
+			handler = new CorsProxyHandler(){
+
+				public void handleRequestProperty(final HttpURLConnection connection,
+						HttpServletRequest request) {
+					
+				}
+
+				public void handleResponseHeader(final HttpServletRequest request,
+						HttpServletResponse response) {
+					
+				}
+
+				public void setServlet(final CorsProxyServlet corsProxyServlet) {
+					
+				}
+
+				public boolean handleResponseCode(final HttpServletRequest request,
+						final HttpServletResponse response, final String proxyUrl,
+						final int responseCode) {
+					return true;
+				}
+				
+			};
+		}
+		handler.setServlet(this);
 	}
 
 	@Override
@@ -163,6 +219,7 @@ public class CorsProxyServlet extends HttpServlet {
 			throws IOException {
 		response.setHeader(HEADER_FIELD_CONTENT_TYPE,
 				request.getHeader(HEADER_FIELD_CONTENT_TYPE));
+		handler.handleResponseHeader(request, response);
 		this.copyStream(
 				new FileInputStream(proxyUrl.substring(PREFIX_FILE_PROTOCOL
 						.length())), response.getOutputStream());
@@ -171,7 +228,7 @@ public class CorsProxyServlet extends HttpServlet {
 	/**
 	 * Create the response for proxy connection of a service
 	 */
-	private void reponseFromConnection(final HttpServletRequest request,
+	public void reponseFromConnection(final HttpServletRequest request,
 			final HttpServletResponse response, final String proxyUrl)
 			throws IOException {
 		final String serviceContext = this.getUrlContext(request
@@ -183,31 +240,35 @@ public class CorsProxyServlet extends HttpServlet {
 				proxyUrl, bufferStream);
 
 		response.setStatus(connection.getResponseCode());
-
-		// Pass back headers
-		final Map<String, List<String>> responseHeaders = connection
-				.getHeaderFields();
-
-		for (final Entry<String, List<String>> entry : responseHeaders
-				.entrySet()) {
-			if (entry.getKey() != null) {
-				if (entry.getKey().equalsIgnoreCase(HEADER_FIELD_CONTENT_TYPE)) {
-					response.setHeader(entry.getKey(),
-							this.concatComma(entry.getValue()));
-				} else if (entry.getKey().equalsIgnoreCase(
-						HEADER_FIELD_SET_COOKIE)) {
-					String cookieValue = this.concatComma(entry.getValue());
-					cookieValue = cookieValue.substring(cookieValue
-							.indexOf("=") + 1, cookieValue
-							.indexOf(HEADER_FIELD_SET_COOKIE_VALUE_DELIMITER));
-					request.getSession().setAttribute(
-							HEADER_FIELD_COOKIE_JSESSIONID + "-"
-									+ serviceContext, cookieValue);
+		
+		if(handler.handleResponseCode(request, response, proxyUrl, connection.getResponseCode())){
+			// Pass back headers
+			final Map<String, List<String>> responseHeaders = connection
+					.getHeaderFields();
+	
+			for (final Entry<String, List<String>> entry : responseHeaders
+					.entrySet()) {
+				if (entry.getKey() != null) {
+					if (entry.getKey().equalsIgnoreCase(HEADER_FIELD_CONTENT_TYPE)) {
+						response.setHeader(entry.getKey(),
+								this.concatComma(entry.getValue()));
+					} else if (entry.getKey().equalsIgnoreCase(
+							HEADER_FIELD_SET_COOKIE)) {
+						String cookieValue = this.concatComma(entry.getValue());
+						cookieValue = cookieValue.substring(cookieValue
+								.indexOf("=") + 1, cookieValue
+								.indexOf(HEADER_FIELD_SET_COOKIE_VALUE_DELIMITER));
+						request.getSession().setAttribute(
+								HEADER_FIELD_COOKIE_JSESSIONID + "-"
+										+ serviceContext, cookieValue);
+					}
 				}
 			}
+			
+			handler.handleResponseHeader(request, response);
+	
+			this.copyStream(connection.getInputStream(), response.getOutputStream());
 		}
-
-		this.copyStream(connection.getInputStream(), response.getOutputStream());
 	}
 
 	/**
@@ -280,6 +341,8 @@ public class CorsProxyServlet extends HttpServlet {
 				connection.setRequestProperty(headerName, headerValue);
 			}
 		}
+		
+		handler.handleRequestProperty(connection, request);
 
 		if (doOutput) {
 			this.copyStream(request.getInputStream(),
