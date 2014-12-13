@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- ################ -->
+	<!-- Address & layout -->
+	<!-- ################ -->
+	<groupId>org.webedded</groupId>
+	<artifactId>cors-proxy</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<!-- ################### -->
+	<!-- General information -->
+	<!-- ################### -->
+	<name>CORS Proxy</name>
+	<url>https://github.com/voiski/cors-proxy</url>
+	<description>Servlet to proxy access where normally is need of CORS where has issues about legacy browser without full implementation, like control of session.</description>
+	<inceptionYear>2014</inceptionYear>
+
+	<!-- ################### -->
+	<!-- Team & Stakeholders -->
+	<!-- ################### -->
+	<developers>
+		<developer>
+			<id>voiski</id>
+			<email>alannunesv@gmail.com</email>
+			<name>Alan N. Voiski</name>
+			<url>https://github.com/voiski</url>
+			<timezone>-3</timezone>
+		</developer>
+	</developers>
+
+	<!-- ############### -->
+	<!-- Technical stuff -->
+	<!-- ############### -->
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<scm>
+		<url>https://github.com/voiski/cors-proxy</url>
+		<connection>scm:git:git://github.com/voiski/cors-proxy.git</connection>
+		<developerConnection>scm:git:git@github.com:voiski/cors-proxy.git</developerConnection>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/voiski/cors-proxy/issues</url>
+	</issueManagement>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.0</version>
+					<configuration>
+						<fork>true</fork>
+						<source>1.5</source>
+						<target>1.5</target>
+						<debug>true</debug>
+						<optimize>true</optimize>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<systemProperties>
+							<property>
+								<name>project.build.directory</name>
+								<value>${project.build.directory}</value>
+							</property>
+						</systemProperties>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>servlet-api</artifactId>
+				<version>2.4</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.11</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>1.9.5</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+</project>
