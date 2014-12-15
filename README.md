@@ -26,7 +26,13 @@ Server certificates signed with well known public Certificate Authority dont nee
 `TODO Document how`
 
 ####Config Properties
-Create a file with key=value, the path to this file will be used in Web.xml.
+You can configure in three ways:
+
+- By external config file with key=value, the path to this file will be used in Web.xml.
+- By init parameter of servlet in in web.xml
+- By init method in handler class.
+
+The keys to configure:
 
 - **javax.net.ssl.keyStore** path for KeyStore, any system property will be replaced like ${jboss.server.home.dir}.
 - **javax.net.ssl.keyStorePassword** password to access keyStore
