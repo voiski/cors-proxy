@@ -1,5 +1,6 @@
 package org.webedded.cors;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,13 +86,22 @@ public class CorsProxyServlet extends HttpServlet {
 			if (confPath == null) {
 				confPath = "${jboss.server.home.dir}/conf/cors-proxy-conf.properties";
 			}
-			externalConfiguration.load(new FileInputStream(this
-					.simpleElTransform(confPath)));
+			if(new File(this.simpleElTransform(confPath)).exists()){
+				externalConfiguration.load(new FileInputStream(this
+						.simpleElTransform(confPath)));
+			}
 		} catch (final IOException e) {
 			Logger.getLogger(this.getClass().getName())
 					.warning(
 							"Error loading CORS-Proxy configuration: "
 									+ e.getMessage());
+		}
+		
+		for (@SuppressWarnings("unchecked") final Enumeration<String> enumeration = config.getInitParameterNames(); enumeration.hasMoreElements();) {
+			final String key = enumeration.nextElement();
+			if(externalConfiguration.getProperty(key)!=null){
+				externalConfiguration.setProperty(key, config.getInitParameter(key));
+			}
 		}
 		
 		initHandler(config);
@@ -131,7 +141,7 @@ public class CorsProxyServlet extends HttpServlet {
 			}
 		}
 	}
-
+	
 	/**
 	 * Configure handler, if not exist custom class use a single implementation.
 	 */
@@ -168,7 +178,7 @@ public class CorsProxyServlet extends HttpServlet {
 					
 				}
 
-				public void setServlet(final CorsProxyServlet corsProxyServlet) {
+				public void initServlet(final CorsProxyServlet corsProxyServlet) {
 					
 				}
 
@@ -180,7 +190,7 @@ public class CorsProxyServlet extends HttpServlet {
 				
 			};
 		}
-		handler.setServlet(this);
+		handler.initServlet(this);
 	}
 
 	@Override
@@ -462,4 +472,25 @@ public class CorsProxyServlet extends HttpServlet {
 			System.getProperties().setProperty(key, this.simpleElTransform(value));
 		}
 	}
+
+	/**
+	 * You can use this to add new services with handler if you dont want to use
+	 * external config.
+	 * 
+	 * @return map with services
+	 */
+	public Map<String, String> getContextServicesMap() {
+		return contextServicesMap;
+	}
+
+	/**
+	 * You can use this to add new resources with handler if you dont want to
+	 * use external config.
+	 * 
+	 * @return map with resources
+	 */
+	public Map<String, String> getContextResoucesMap() {
+		return contextResoucesMap;
+	}
+
 }

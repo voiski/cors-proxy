@@ -45,6 +45,6 @@ public interface CorsProxyHandler {
 	 * 
 	 * @param corsProxyServlet current servlet
 	 */
-	void setServlet(CorsProxyServlet corsProxyServlet);
+	void initServlet(CorsProxyServlet corsProxyServlet);
 
 }

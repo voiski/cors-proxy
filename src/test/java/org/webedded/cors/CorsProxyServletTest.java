@@ -15,7 +15,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.webedded.cors.CorsProxyServlet;
 
 /**
  * Test servlet
@@ -35,7 +34,7 @@ public class CorsProxyServletTest extends Mockito {
 		
 		HttpServlet config = mock(HttpServlet.class);
 		when(config.getInitParameter(CorsProxyServlet.INIT_CONFIG_PATH)).thenReturn(System.getProperty("project.build.directory")+"/test-classes/cors-proxy-conf.properties");
-		
+		when(config.getInitParameterNames()).thenReturn(new Vector<String>().elements());
 		
 		servlet = new CorsProxyServlet();
 		servlet.init(config);
