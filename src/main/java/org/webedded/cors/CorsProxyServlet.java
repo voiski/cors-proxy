@@ -197,8 +197,10 @@ public class CorsProxyServlet extends HttpServlet {
 	public void service(final HttpServletRequest request,
 			final HttpServletResponse response) throws ServletException,
 			IOException {
-		final String proxyUrl = this.buildUrl(request.getRequestURL()
-				.toString(), request.getServletPath());
+		final String requestUrl = request.getQueryString() == null ? request
+				.getRequestURL().toString() : MessageFormat.format("{0}?{1}",
+				request.getRequestURL().toString(), request.getQueryString());
+		final String proxyUrl = this.buildUrl(requestUrl, request.getServletPath());
 
 		if (proxyUrl == null) {
 			throw new ServletException("No " + X_PROXY_LOCATION_HEADER
