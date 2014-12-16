@@ -47,6 +47,7 @@ public class CorsProxyServlet extends HttpServlet {
 	private static final String HEADER_FIELD_COOKIE_JSESSIONID = "JSESSIONID";
 
 	private static final String PREFIX_FILE_PROTOCOL = "file://";
+	private static final String PREFIX_CLASSPATH_PROTOCOL = "classpath://";
 
 	// Init params from web.xml
 	public static final String INIT_CONFIG_PATH = "org.webedded.cors.conf_path";
@@ -86,7 +87,12 @@ public class CorsProxyServlet extends HttpServlet {
 			if (confPath == null) {
 				confPath = "${jboss.server.home.dir}/conf/cors-proxy-conf.properties";
 			}
-			if(new File(this.simpleElTransform(confPath)).exists()){
+			if(confPath.startsWith(PREFIX_CLASSPATH_PROTOCOL)){
+				externalConfiguration
+						.load(getClass().getResourceAsStream(
+								confPath.substring(PREFIX_CLASSPATH_PROTOCOL
+										.length())));
+			}else if(new File(this.simpleElTransform(confPath)).exists()){
 				externalConfiguration.load(new FileInputStream(this
 						.simpleElTransform(confPath)));
 			}
@@ -210,6 +216,8 @@ public class CorsProxyServlet extends HttpServlet {
 		try {
 			if (proxyUrl.startsWith(PREFIX_FILE_PROTOCOL)) {
 				reponseFromFile(request, response, proxyUrl);
+			} else if (proxyUrl.startsWith(PREFIX_CLASSPATH_PROTOCOL)) {
+				reponseFromClasspath(request, response, proxyUrl);
 			} else {
 				reponseFromConnection(request, response, proxyUrl);
 			}
@@ -223,7 +231,7 @@ public class CorsProxyServlet extends HttpServlet {
 	}
 
 	/**
-	 * Create the response for overrided resource ignorindo proxy to origin
+	 * Create the response for overrided resource ignoring proxy to origin
 	 * service
 	 */
 	private void reponseFromFile(final HttpServletRequest request,
@@ -235,6 +243,22 @@ public class CorsProxyServlet extends HttpServlet {
 		this.copyStream(
 				new FileInputStream(proxyUrl.substring(PREFIX_FILE_PROTOCOL
 						.length())), response.getOutputStream());
+	}
+
+	/**
+	 * Create the response for overrided resource inside classpath ignoring
+	 * proxy to origin service
+	 */
+	private void reponseFromClasspath(final HttpServletRequest request,
+			final HttpServletResponse response, final String proxyUrl)
+			throws IOException {
+		response.setHeader(HEADER_FIELD_CONTENT_TYPE,
+				request.getHeader(HEADER_FIELD_CONTENT_TYPE));
+		handler.handleResponseHeader(request, response);
+		this.copyStream(
+				getClass().getResourceAsStream(
+						proxyUrl.substring(PREFIX_CLASSPATH_PROTOCOL.length())),
+				response.getOutputStream());
 	}
 
 	/**
