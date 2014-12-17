@@ -302,8 +302,15 @@ public class CorsProxyServlet extends HttpServlet {
 			}
 			
 			handler.handleResponseHeader(request, response);
-	
-			this.copyStream(connection.getInputStream(), response.getOutputStream());
+			try{
+				this.copyStream(connection.getInputStream(), response.getOutputStream());
+			}catch(final IOException ioe){
+				if(ioe.getMessage().contains("Server returned HTTP")){
+					this.copyStream(connection.getErrorStream(), response.getOutputStream());
+				}else{
+					throw ioe;
+				}
+			}
 		}
 	}
 
