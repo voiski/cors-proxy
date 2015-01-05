@@ -13,12 +13,12 @@ Simply put the jar in classpath of your web application or use maven:
 	<dependency>
 		<groupId>org.webedded.cors</groupId>
 		<artifactId>cors-proxy</artifactId>
-		<version>1.0</version>
+		<version>1.0.4</version>
 	</dependency>
 ```
 
 
-> Not yet in central maven, see tags for release.
+> Now in central maven starting with version 1.0.4, see tags for old releases.
 
 ####Generate KeyStore/TrustStore
 Server certificates signed with well known public Certificate Authority dont need this config.
