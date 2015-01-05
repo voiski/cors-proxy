@@ -46,6 +46,16 @@
 		<connection>scm:git:git://github.com/voiski/cors-proxy.git</connection>
 		<developerConnection>scm:git:git@github.com:voiski/cors-proxy.git</developerConnection>
 	</scm>
+	<distributionManagement>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 	<issueManagement>
 		<system>GitHub Issues</system>
 		<url>https://github.com/voiski/cors-proxy/issues</url>
