@@ -137,7 +137,7 @@ public class CorsProxyServlet extends HttpServlet {
 				final String urlTo = this.simpleElTransform(externalConfiguration.getProperty(
 					MessageFormat.format(ContextService.INIT_CONFIG_TO_MASK, context)
 				));
-				ContextService.getFromMap(contextServicesMap,context).putResource(urlFrom, urlTo);
+				ContextService.getFromMap(contextServicesMap,context.substring(0,context.indexOf('.'))).putResource(urlFrom, urlTo);
 			} else if (singleKey.startsWith(ContextService.INIT_CONFIG_COPY_HEADERS)){
 				final String condition = this.simpleElTransform(externalConfiguration.getProperty(singleKey));
 				if("true".equalsIgnoreCase(condition) || "1".equalsIgnoreCase(condition)){
