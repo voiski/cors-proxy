@@ -62,16 +62,12 @@ public class CorsProxyServlet extends HttpServlet {
 	private static final String INIT_CONFIG_KEYSTOREPASSWORD = "javax.net.ssl.keyStorePassword";
 	private static final String INIT_CONFIG_TRUSTSTOREPASSWORD = "javax.net.ssl.trustStorePassword";
 
-	private static final String INIT_CONFIG_SUFIX_SERVICES = "server.";
-	private static final String INIT_CONFIG_SUFIX_FROM = "resource.from.";
-	private static final String INIT_CONFIG_TO_MASK = "resource.to.{0}";
-
 	private static final String X_PROXY_LOCATION_HEADER = "X-Proxy-Location";
 	private static final String X_REST_METHOD_HEADER = "X-REST-Method";
 
 	public static final int DEFAULT_BUFFER_SIZE = 1024;
 
-	private static final Map<String, String> contextServicesMap = new HashMap<String, String>();
+	private static final Map<String, ContextService> contextServicesMap = new HashMap<String, ContextService>();
 	private static final Map<String, String> contextResoucesMap = new HashMap<String, String>();
 	
 	private static CorsProxyHandler handler;
@@ -103,6 +99,9 @@ public class CorsProxyServlet extends HttpServlet {
 									+ e.getMessage());
 		}
 		
+		// Add servlet int parameters to config map, this will permite config
+		// the same values inside the war but in external configuration will
+		// override them.
 		for (@SuppressWarnings("unchecked") final Enumeration<String> enumeration = config.getInitParameterNames(); enumeration.hasMoreElements();) {
 			final String key = enumeration.nextElement();
 			if(externalConfiguration.getProperty(key)!=null){
@@ -124,26 +123,27 @@ public class CorsProxyServlet extends HttpServlet {
 		setSystemPropertieIfExist(externalConfiguration, INIT_CONFIG_DEBUG);
 
 		// Configure contexts of services/resources to concat operations
-		for (final Enumeration<Object> keys = externalConfiguration.keys(); keys
-				.hasMoreElements();) {
+		for (final Enumeration<Object> keys = externalConfiguration.keys(); keys.hasMoreElements();) {
 			final String singleKey = (String) keys.nextElement();
-			if (singleKey.startsWith(INIT_CONFIG_SUFIX_SERVICES)) {
-				final String context = singleKey
-						.substring(INIT_CONFIG_SUFIX_SERVICES.length());
-				final String url = this.simpleElTransform(externalConfiguration
-						.getProperty(singleKey));
-				contextServicesMap.put(context, url);
-			} else if (singleKey.startsWith(INIT_CONFIG_SUFIX_FROM)) {
-				final String context = singleKey
-						.substring(INIT_CONFIG_SUFIX_FROM.length());
-				final String urlFrom = this
-						.simpleElTransform(externalConfiguration
-								.getProperty(singleKey));
-				final String urlTo = this
-						.simpleElTransform(externalConfiguration
-								.getProperty(MessageFormat.format(
-										INIT_CONFIG_TO_MASK, context)));
-				contextResoucesMap.put(urlFrom, urlTo);
+			if (singleKey.startsWith(ContextService.INIT_CONFIG_SUFIX_SERVICES)) {
+				final String context = singleKey.substring(ContextService.INIT_CONFIG_SUFIX_SERVICES.length());
+				final String url = this.simpleElTransform(externalConfiguration.getProperty(singleKey));
+				contextServicesMap.put(context, ContextService.reuse(contextServicesMap.get(context),context, url));
+			} else if (singleKey.startsWith(ContextService.INIT_CONFIG_SUFIX_FROM)) {
+				final String context = singleKey.substring(ContextService.INIT_CONFIG_SUFIX_FROM.length());
+				final String urlFrom = this.simpleElTransform(externalConfiguration.getProperty(
+					singleKey
+				));
+				final String urlTo = this.simpleElTransform(externalConfiguration.getProperty(
+					MessageFormat.format(ContextService.INIT_CONFIG_TO_MASK, context)
+				));
+				ContextService.getFromMap(contextServicesMap,context).putResource(urlFrom, urlTo);
+			} else if (singleKey.startsWith(ContextService.INIT_CONFIG_COPY_HEADERS)){
+				final String condition = this.simpleElTransform(externalConfiguration.getProperty(singleKey));
+				if("true".equalsIgnoreCase(condition) || "1".equalsIgnoreCase(condition)){
+					final String context = singleKey.substring(ContextService.INIT_CONFIG_COPY_HEADERS.length());
+					ContextService.getFromMap(contextServicesMap,context).enableCopyHeaders();
+				}
 			}
 		}
 	}
@@ -282,13 +282,11 @@ public class CorsProxyServlet extends HttpServlet {
 			final Map<String, List<String>> responseHeaders = connection
 					.getHeaderFields();
 	
+			final ContextService contextService = contextServicesMap.get(serviceContext);
 			for (final Entry<String, List<String>> entry : responseHeaders
 					.entrySet()) {
 				if (entry.getKey() != null) {
-					if (entry.getKey().equalsIgnoreCase(HEADER_FIELD_CONTENT_TYPE)) {
-						response.setHeader(entry.getKey(),
-								this.concatComma(entry.getValue()));
-					} else if (entry.getKey().equalsIgnoreCase(
+					if (entry.getKey().equalsIgnoreCase(
 							HEADER_FIELD_SET_COOKIE)) {
 						String cookieValue = this.concatComma(entry.getValue());
 						cookieValue = cookieValue.substring(cookieValue
@@ -297,6 +295,9 @@ public class CorsProxyServlet extends HttpServlet {
 						request.getSession().setAttribute(
 								HEADER_FIELD_COOKIE_JSESSIONID + "-"
 										+ serviceContext, cookieValue);
+					}else if (contextService.isCopyHeaders() || entry.getKey().equalsIgnoreCase(HEADER_FIELD_CONTENT_TYPE)) {
+						response.setHeader(entry.getKey(),
+								this.concatComma(entry.getValue()));
 					}
 				}
 			}
@@ -401,30 +402,9 @@ public class CorsProxyServlet extends HttpServlet {
 	 */
 	private String buildUrl(final String requestUrl, final String servletPath) {
 		final String urlContent = requestUrl.split(servletPath)[1];
-		final String serviceContext = urlContent.substring(1,
-				urlContent.indexOf('/', 1));
-
-		String url = this.getPathResourceIfExist(urlContent);
-		if (url == null) {
-			url = contextServicesMap.get(serviceContext).concat(
-					urlContent.substring(1 + serviceContext.length()));
-		}
-
-		return url;
-	}
-
-	private String getPathResourceIfExist(final String urlContent) {
-		String path = null;
-		for (final String single : contextResoucesMap.keySet()) {
-			if (urlContent.startsWith(single)) {
-				path = contextResoucesMap.get(single);
-				if (!path.startsWith(PREFIX_FILE_PROTOCOL)) {
-					path = path.concat(urlContent.substring(single.length()));
-				}
-				break;
-			}
-		}
-		return path;
+		final String serviceContext = urlContent.substring(1,urlContent.indexOf('/', 1));
+		
+		return contextServicesMap.get(serviceContext).getOriginUrl(urlContent);
 	}
 
 	/**
@@ -512,7 +492,7 @@ public class CorsProxyServlet extends HttpServlet {
 	 * 
 	 * @return map with services
 	 */
-	public Map<String, String> getContextServicesMap() {
+	public Map<String, ContextService> getContextServicesMap() {
 		return contextServicesMap;
 	}
 
