@@ -62,8 +62,9 @@ public class CorsProxyServlet extends HttpServlet {
 	private static final String INIT_CONFIG_KEYSTOREPASSWORD = "javax.net.ssl.keyStorePassword";
 	private static final String INIT_CONFIG_TRUSTSTOREPASSWORD = "javax.net.ssl.trustStorePassword";
 
-	private static final String X_PROXY_LOCATION_HEADER = "X-Proxy-Location";
-	private static final String X_REST_METHOD_HEADER = "X-REST-Method";
+	private static final String HEADER_X_PROXY_LOCATION = "X-Proxy-Location";
+	private static final String HEADER_X_REST_METHOD = "X-REST-Method";
+	private static final String HEADER_TRANSFER_ENCODING = "Transfer-Encoding";
 
 	public static final int DEFAULT_BUFFER_SIZE = 1024;
 
@@ -209,7 +210,7 @@ public class CorsProxyServlet extends HttpServlet {
 		final String proxyUrl = this.buildUrl(requestUrl, request.getServletPath());
 
 		if (proxyUrl == null) {
-			throw new ServletException("No " + X_PROXY_LOCATION_HEADER
+			throw new ServletException("No " + HEADER_X_PROXY_LOCATION
 					+ " header present.");
 		}
 
@@ -285,7 +286,7 @@ public class CorsProxyServlet extends HttpServlet {
 			final ContextService contextService = contextServicesMap.get(serviceContext);
 			for (final Entry<String, List<String>> entry : responseHeaders
 					.entrySet()) {
-				if (entry.getKey() != null) {
+				if (entry.getKey() != null && !HEADER_TRANSFER_ENCODING.equalsIgnoreCase(entry.getKey())) {
 					if (entry.getKey().equalsIgnoreCase(
 							HEADER_FIELD_SET_COOKIE)) {
 						String cookieValue = this.concatComma(entry.getValue());
@@ -354,8 +355,8 @@ public class CorsProxyServlet extends HttpServlet {
 		final Enumeration enu = request.getHeaderNames(); enu.hasMoreElements();) {
 			final String headerName = (String) enu.nextElement();
 
-			if (headerName.equals(X_REST_METHOD_HEADER)
-					|| headerName.equals(X_PROXY_LOCATION_HEADER)) {
+			if (headerName.equals(HEADER_X_REST_METHOD)
+					|| headerName.equals(HEADER_X_PROXY_LOCATION)) {
 				continue;
 			}
 
