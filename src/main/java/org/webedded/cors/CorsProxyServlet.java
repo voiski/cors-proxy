@@ -198,6 +198,17 @@ public class CorsProxyServlet extends HttpServlet {
 			};
 		}
 		handler.initServlet(this);
+		
+		//Compatibility with version 1.0.3
+		for (@SuppressWarnings("rawtypes") Iterator iterator = contextServicesMap.entrySet().iterator(); iterator.hasNext();) {
+			@SuppressWarnings("rawtypes") Entry entry = (Entry) iterator.next();
+			if(entry.getValue() instanceof String){
+				final ContextService context = ContextService.c((String)entry.getKey(), (String)entry.getValue());
+				context.enableCopyHeaders();
+				
+				contextServicesMap.put((String) entry.getKey(), context);
+			}
+		}
 	}
 
 	@Override
