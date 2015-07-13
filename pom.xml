@@ -7,7 +7,7 @@
 	<!-- ################ -->
 	<groupId>org.webedded.cors</groupId>
 	<artifactId>cors-proxy</artifactId>
-	<version>1.0.6-SNAPSHOT</version>
+	<version>1.0.6</version>
 	<packaging>jar</packaging>
 
 	<!-- ################### -->
