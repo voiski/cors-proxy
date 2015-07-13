@@ -54,7 +54,7 @@ public class CorsProxyServletTest extends Mockito {
 
 	@Test
 	public void testServiceGetTextHttps() throws IOException, ServletException {
-		HttpServletRequest request = createRequest("https://cors.com.br/context/pxcors/rgv-sec/cors-proxy/master/README.md");
+		HttpServletRequest request = createRequest("https://cors.com.br/context/pxcors/regbrtec/epp-formulario.txt");
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         HttpServletResponse response = createResponse(output);
         
