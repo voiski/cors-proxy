@@ -75,7 +75,7 @@ How to use
 --------------------
 Just use as follows in links/requests:
 
-> http://localhost/context/<mapped_origin_context>/<second_part_original_url>
+> http://localhost/context/${mapped_origin_context}/${second_part_original_url}
 
 Sample:
 
