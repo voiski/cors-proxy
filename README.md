@@ -1,6 +1,8 @@
 CORS-Proxy
 =================
-[![Build Status](https://travis-ci.org/voiski/cors-proxy.svg?branch=master)](https://travis-ci.org/voiski/cors-proxy) [![Coverage Status](https://coveralls.io/repos/voiski/cors-proxy/badge.svg?branch=master&service=github)](https://coveralls.io/github/voiski/cors-proxy?branch=master)
+[![Build Status](https://travis-ci.org/voiski/cors-proxy.svg?branch=master)](https://travis-ci.org/voiski/cors-proxy)
+[![Coverage Status](https://coveralls.io/repos/voiski/cors-proxy/badge.svg?branch=master&service=github)](https://coveralls.io/github/voiski/cors-proxy?branch=master)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/cz.jirutka.rsql/rsql-parser/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.webedded.cors/cors-proxy)
 
 Servlet to proxy requests involving Cross-Origin Resource Sharing (CORS) due to cross-domain problem. Some browsers do not implemented completely the CORS creating a problem of access to resources, events that require sending cookies to identification of the session. This servlet will make a proxy for the true service.
 
