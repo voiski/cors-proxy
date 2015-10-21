@@ -25,9 +25,7 @@ Simply put the jar in classpath of your web application or use maven:
 > Now in central maven starting with version 1.0.4, see tags for old releases.
 
 ####Generate KeyStore/TrustStore
-Server certificates signed with well known public Certificate Authority dont need this config.
-
-`TODO Document how`
+Server certificates signed with well known public Certificate Authority dont need this config. For not trusted certificates, you need to create a trust store to validate your key store. For it, try this [link](https://docs.oracle.com/cd/E19509-01/820-3503/6nf1il6er/index.html). In this case, you need to configure the **javax.net.ssl.*** parameters.
 
 ####Config Properties
 You can configure in three ways:
